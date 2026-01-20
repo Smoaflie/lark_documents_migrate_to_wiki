@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OAuth Callback</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: #f5f7fb;
+        color: #1f2430;
+      }
+      .card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.15);
+        width: min(520px, 90vw);
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 22px;
+      }
+      p {
+        margin: 0 0 16px;
+        color: #4c566a;
+      }
+      pre {
+        background: #0f172a;
+        color: #f8fafc;
+        padding: 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        overflow: auto;
+      }
+      button {
+        margin-top: 16px;
+        border: none;
+        background: #ff6b35;
+        color: #fff;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Authorization received</h1>
+      <p id="status">Sending the authorization result back to the opener.</p>
+      <pre id="payload"></pre>
+      <button id="closeBtn" type="button">Close</button>
+    </div>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const payload = {
+        code: params.get("code"),
+        state: params.get("state"),
+        error: params.get("error"),
+      };
+
+      document.getElementById("payload").textContent = JSON.stringify(
+        payload,
+        null,
+        2
+      );
+
+      const status = document.getElementById("status");
+      if (window.opener && !window.opener.closed) {
+        window.opener.postMessage(
+          { type: "feishu-oauth", payload },
+          window.location.origin
+        );
+        status.textContent = "Sent. You can close this window.";
+        setTimeout(() => window.close(), 600);
+      } else {
+        status.textContent =
+          "No opener detected. Copy the code from above into the main page.";
+      }
+
+      document.getElementById("closeBtn").addEventListener("click", () => {
+        window.close();
+      });
+    </script>
+  </body>
+</html>

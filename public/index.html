@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>飞书云文档迁移工具</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="backdrop">
+      <div class="glow glow-left"></div>
+      <div class="glow glow-right"></div>
+    </div>
+    <main class="app">
+      <header class="hero">
+        <div class="eyebrow">飞书云文档迁移</div>
+        <h1>云文档迁移到知识库</h1>
+        <p class="subtitle">
+          输入自建应用信息，一键完成授权并加载根目录，选择后迁移至知识库。
+        </p>
+      </header>
+
+      <section class="grid">
+        <div class="panel">
+          <h2>应用信息</h2>
+          <div class="field">
+            <label for="appId">APP_ID</label>
+            <input id="appId" type="text" placeholder="cli_xxxxxxx" />
+          </div>
+          <div class="field">
+            <label for="appSecret">APP_SECRET</label>
+            <input id="appSecret" type="password" placeholder="********" />
+          </div>
+          <div class="field">
+            <label for="redirectUri">回调地址 Redirect URI</label>
+            <input id="redirectUri" type="url" />
+          </div>
+          <div class="field">
+            <label for="scope">OAuth 权限范围</label>
+            <input
+              id="scope"
+              type="text"
+              placeholder="drive:drive wiki:wiki"
+            />
+            <span class="hint"
+              >请确保包含云文档与知识库相关权限。</span
+            >
+          </div>
+
+          <div class="actions">
+            <button id="btnQuickAuth">一键授权并加载根目录</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="field">
+            <label for="authCode">授权码</label>
+            <input id="authCode" type="text" placeholder="授权回调的 code" />
+          </div>
+          <div class="field">
+            <label for="tenantToken">tenant_access_token</label>
+            <textarea id="tenantToken" rows="3" readonly></textarea>
+          </div>
+          <div class="field">
+            <label for="userToken">user_access_token</label>
+            <textarea id="userToken" rows="3" readonly></textarea>
+          </div>
+
+          <div class="divider"></div>
+
+          <h2>共享文件夹</h2>
+          <div class="field">
+            <label for="sharedFolderToken">文件夹 Token</label>
+            <input
+              id="sharedFolderToken"
+              type="text"
+              placeholder="fldxxxxxxxx"
+            />
+            <span class="hint">名称会自动获取。</span>
+          </div>
+          <div class="actions">
+            <button id="btnAddFolder">添加到文件树</button>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="panel log-panel">
+            <div class="panel-header">
+              <div>
+                <h2>日志</h2>
+                <p class="subtitle">记录所有接口请求、响应与错误信息。</p>
+              </div>
+              <button class="ghost" id="btnClear">清空</button>
+            </div>
+            <pre id="log"></pre>
+            <div class="result">
+              <h3>结果</h3>
+              <pre id="result"></pre>
+            </div>
+          </div>
+
+          <div class="panel tree-panel">
+            <div class="panel-header">
+              <div>
+                <h2>文件树</h2>
+                <p class="subtitle">展开文件夹以加载子项。</p>
+              </div>
+              <div class="panel-actions">
+                <button class="ghost" id="btnRefreshTree">刷新</button>
+                <button class="ghost" id="btnCollapseAll">全部收起</button>
+              </div>
+            </div>
+            <ul id="treeRoot" class="tree"></ul>
+          </div>
+
+          <div class="panel migrate-panel">
+            <div class="panel-header">
+              <div>
+                <h2>迁移到知识库</h2>
+                <p class="subtitle">
+                  请选择同一根目录下的文件或文件夹进行迁移。
+                </p>
+              </div>
+            </div>
+            <div class="field">
+              <label>选择情况</label>
+              <div id="selectionSummary" class="selection-summary">
+                暂无选择。
+              </div>
+            </div>
+            <div class="actions">
+              <button id="btnMigrate">开始迁移</button>
+              <button class="ghost" id="btnStop" disabled>停止迁移</button>
+              <button class="ghost" id="btnClearSelection">清空选择</button>
+            </div>
+            <div class="progress-board">
+              <div class="progress-row">
+                <div class="progress-label">创建子文件夹节点</div>
+                <div class="progress-bar">
+                  <div id="nodeProgressBar" class="progress-fill"></div>
+                </div>
+                <div id="nodeProgressText" class="progress-text">0 / 0</div>
+              </div>
+              <div class="progress-row">
+                <div class="progress-label">移动文档</div>
+                <div class="progress-bar">
+                  <div id="moveProgressBar" class="progress-fill"></div>
+                </div>
+                <div id="moveProgressText" class="progress-text">0 / 0</div>
+              </div>
+            </div>
+            <ol id="migrationSteps" class="stepper">
+              <li class="step" data-step-id="select">
+                <span class="step__icon"></span>
+                <span class="step__label">校验选择范围</span>
+              </li>
+              <li class="step" data-step-id="root-meta">
+                <span class="step__icon"></span>
+                <span class="step__label">获取根目录信息</span>
+              </li>
+              <li class="step" data-step-id="create-migrate-folder">
+                <span class="step__icon"></span>
+                <span class="step__label">创建 _to_migrate</span>
+              </li>
+              <li class="step" data-step-id="copy-files">
+                <span class="step__icon"></span>
+                <span class="step__label">复制到 _to_migrate</span>
+              </li>
+              <li class="step" data-step-id="copy-check">
+                <span class="step__icon"></span>
+                <span class="step__label">校验复制完成</span>
+              </li>
+              <li class="step" data-step-id="create-space">
+                <span class="step__icon"></span>
+                <span class="step__label">创建知识空间</span>
+              </li>
+              <li class="step" data-step-id="create-nodes">
+                <span class="step__icon"></span>
+                <span class="step__label">创建子文件夹节点</span>
+              </li>
+              <li class="step" data-step-id="move-docs">
+                <span class="step__icon"></span>
+                <span class="step__label">移动文档到知识库</span>
+              </li>
+              <li class="step" data-step-id="wiki-task">
+                <span class="step__icon"></span>
+                <span class="step__label">检查移动任务</span>
+              </li>
+              <li class="step" data-step-id="delete-migrate-folder">
+                <span class="step__icon"></span>
+                <span class="step__label">删除 _to_migrate</span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
