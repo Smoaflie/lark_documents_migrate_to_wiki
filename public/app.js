@@ -39,6 +39,7 @@ const MOVE_DOCS_BATCH_LIMIT = 90;
 const MOVE_DOCS_PAUSE_MS = 60000;
 const DEFAULT_SCOPE =
   "drive:drive:readonly drive:drive.metadata:readonly wiki:wiki space:folder:create docs:document:copy";
+const WIKI_TASK_TYPE = "move_docs_to_wiki";
 
 function nowStamp() {
   return new Date().toISOString();
@@ -1196,6 +1197,7 @@ async function checkWikiTasks(accessToken, taskIds) {
     const result = await postJson("/api/wiki_task_get", {
       user_access_token: accessToken,
       task_id: taskId,
+      task_type: WIKI_TASK_TYPE,
     });
     logApiResult("查询迁移任务", result);
     if (!result.ok) {
@@ -1491,17 +1493,6 @@ elements.btnMigrate.addEventListener("click", async () => {
     const wikiTasks = await checkWikiTasks(accessToken, moveReport.taskIds);
     setStepState("wiki-task", "done");
 
-    setStepState("delete-migrate-folder", "active");
-    ensureNotCancelled();
-    const deleteResult = await postJson("/api/delete_file", {
-      user_access_token: accessToken,
-      file_token: migrateFolder.token,
-      file_type: "folder",
-    });
-    logApiResult("删除 _to_migrate", deleteResult);
-    if (!deleteResult.ok) {
-      throw new Error("删除 _to_migrate 失败。");
-    }
     setStepState("delete-migrate-folder", "done");
 
     setResult({
@@ -1522,7 +1513,7 @@ elements.btnMigrate.addEventListener("click", async () => {
         token: migrateFolder.token,
       },
       cleanup: {
-        deleted: true,
+        reminder: `请手动删除文件夹 ${migrateFolder.name}`,
       },
       copy: {
         requested: copyPlan.supported.length,

@@ -62,9 +62,10 @@ body {
 .app {
   position: relative;
   z-index: 1;
-  width: min(96vw, 1500px);
-  margin: 0 auto;
-  padding: 40px clamp(16px, 3vw, 48px) 64px;
+  width: 80vw;
+  max-width: 80vw;
+  margin: 0 10vw;
+  padding: clamp(24px, 5vh, 56px) clamp(12px, 2vw, 32px) 64px;
 }
 
 .hero {
@@ -105,9 +106,22 @@ h3 {
 
 .grid {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
   gap: 24px;
   align-items: start;
+  width: 100%;
+}
+
+.grid > * {
+  min-width: 0;
+}
+
+.stack {
+  min-width: 0;
+}
+
+.panel {
+  min-width: 0;
 }
 
 .stack {
@@ -232,7 +246,11 @@ button.ghost {
   padding: 16px;
   min-height: 240px;
   max-height: 420px;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
   line-height: 1.5;
@@ -248,7 +266,11 @@ button.ghost {
   border-radius: 16px;
   padding: 16px;
   min-height: 160px;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
 }

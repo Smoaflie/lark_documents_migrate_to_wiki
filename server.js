@@ -388,7 +388,8 @@ const server = http.createServer(async (req, res) => {
         body.file_token
       )}`;
       const querySuffix = query.toString();
-      const deleteUrl = querySuffix ? `${baseUrl}?${querySuffix}` : baseUrl;
+      const queryPart = querySuffix ? `?${querySuffix}` : "";
+      const deleteUrl = `${baseUrl}${queryPart}`;
 
       const deleteResult = await proxyRequest({
         url: deleteUrl,
@@ -398,29 +399,7 @@ const server = http.createServer(async (req, res) => {
         },
       });
 
-      if (deleteResult.ok) {
-        sendJson(res, 200, deleteResult);
-        return;
-      }
-
-      const trashUrl = querySuffix
-        ? `${baseUrl}/trash?${querySuffix}`
-        : `${baseUrl}/trash`;
-
-      const trashResult = await proxyRequest({
-        url: trashUrl,
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json; charset=utf-8",
-        },
-        body: {},
-      });
-
-      sendJson(res, 200, {
-        ...trashResult,
-        fallback: deleteResult,
-      });
+      sendJson(res, 200, deleteResult);
     } catch (err) {
       sendJson(res, 500, { ok: false, error: err.message });
     }
@@ -572,10 +551,19 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
+      const query = new URLSearchParams();
+      if (body.task_type) {
+        query.set("task_type", body.task_type);
+      }
+
+      const baseUrl = `https://open.feishu.cn/open-apis/wiki/v2/tasks/${encodeURIComponent(
+        body.task_id
+      )}`;
+      const querySuffix = query.toString();
+      const url = querySuffix ? `${baseUrl}?${querySuffix}` : baseUrl;
+
       const result = await proxyRequest({
-        url: `https://open.feishu.cn/open-apis/wiki/v2/tasks/${encodeURIComponent(
-          body.task_id
-        )}`,
+        url,
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
