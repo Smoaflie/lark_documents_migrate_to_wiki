@@ -37,6 +37,8 @@ const WIKI_SUPPORTED_TYPES = new Set([
 ]);
 const MOVE_DOCS_BATCH_LIMIT = 90;
 const MOVE_DOCS_PAUSE_MS = 60000;
+const DEFAULT_SCOPE =
+  "drive:drive:readonly drive:drive.metadata:readonly wiki:wiki space:folder:create docs:document:copy";
 
 function nowStamp() {
   return new Date().toISOString();
@@ -1208,6 +1210,8 @@ async function checkWikiTasks(accessToken, taskIds) {
   return summaries;
 }
 elements.redirectUri.value = `${window.location.origin}/oauth/callback`;
+elements.scope.value = DEFAULT_SCOPE;
+elements.scope.readOnly = true;
 
 function openOauthWindow(appId, redirectUri, scopeValue) {
   const state = generateState();
